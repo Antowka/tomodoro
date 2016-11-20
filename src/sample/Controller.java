@@ -65,6 +65,11 @@ public class Controller {
     }
 
     private void onClickStart() {
+
+        if(currentTimer < 1) {
+            currentTimer = timePeriod;
+        }
+
         timer.start();
     }
 

@@ -4,6 +4,9 @@ import javafx.application.Platform;
 import javafx.fxml.FXML;
 import javafx.scene.control.Button;
 import javafx.scene.control.TextField;
+import javafx.scene.image.*;
+import javafx.scene.image.Image;
+import javafx.scene.text.Text;
 import javafx.stage.Stage;
 
 import javax.swing.*;
@@ -17,7 +20,10 @@ public class Controller {
     private Stage primaryStage;
 
     @FXML
-    private TextField stringTimer;
+    private ImageView logoImg;
+
+    @FXML
+    private Text stringTimer;
 
     @FXML
     private Button btnStart;
@@ -37,6 +43,9 @@ public class Controller {
     public void initialize(Stage primaryStage1) {
 
         this.primaryStage = primaryStage1;
+
+        logoImg.setImage(new Image("images/tomato.jpg"));
+
         stringTimer.setText(timeToString());
         btnStart.setOnAction((event) -> onClickStart());
         btnPause.setOnAction((event) -> onClickPause());

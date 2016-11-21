@@ -2,4 +2,6 @@
 .idea
 *.iml
 out/
+build/
+!build/libs/*.jar
 !out/artifacts/tomodoro/tomodoro.jar

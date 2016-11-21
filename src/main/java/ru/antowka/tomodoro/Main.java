@@ -1,4 +1,4 @@
-package sample;
+package ru.antowka.tomodoro;
 
 import javafx.application.Application;
 import javafx.fxml.FXMLLoader;
@@ -10,7 +10,7 @@ public class Main extends Application {
 
     @Override
     public void start(Stage primaryStage) throws Exception{
-        FXMLLoader loader = new FXMLLoader(getClass().getResource("tomodoro.fxml"));
+        FXMLLoader loader = new FXMLLoader(getClass().getResource("/view/main.fxml"));
         Parent root = loader.load();
         Controller controller = loader.getController();
         controller.initialize(primaryStage);

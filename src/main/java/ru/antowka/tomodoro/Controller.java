@@ -1,4 +1,4 @@
-package sample;
+package ru.antowka.tomodoro;
 
 import javafx.application.Platform;
 import javafx.fxml.FXML;

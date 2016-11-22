@@ -3,14 +3,12 @@ package ru.antowka.tomodoro;
 import javafx.application.Platform;
 import javafx.fxml.FXML;
 import javafx.scene.control.Button;
-import javafx.scene.control.TextField;
-import javafx.scene.image.*;
 import javafx.scene.image.Image;
+import javafx.scene.image.ImageView;
 import javafx.scene.text.Text;
 import javafx.stage.Stage;
 
 import javax.swing.*;
-import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.util.concurrent.TimeUnit;
@@ -34,11 +32,31 @@ public class Controller {
     @FXML
     private Button btnReset;
 
+    /**
+     * Timer
+     */
     private Timer timer;
 
+    /**
+     * time period in sec (25min)
+     */
     private final int timePeriod = 25 * 60;
+
+    /**
+     * current timer counter
+     */
     private Integer currentTimer = timePeriod;
+
+    /**
+     * length for time tick(1000 msec)
+     */
     private final int timeTick = 1*1000;
+
+    /**
+     * Resource for application
+     */
+    private Resources resources = Resources.getInstance();
+
 
     public void initialize(Stage primaryStage1) {
 
@@ -50,6 +68,29 @@ public class Controller {
         btnStart.setOnAction((event) -> onClickStart());
         btnPause.setOnAction((event) -> onClickPause());
         btnReset.setOnAction((event) -> onClickReset());
+
+        initTimer();
+    }
+
+    private void onClickStart() {
+
+        if(currentTimer < 1) {
+            currentTimer = timePeriod;
+        }
+        timer.start();
+    }
+
+    private void onClickPause() {
+        timer.stop();
+    }
+
+    private void onClickReset() {
+        timer.stop();
+        currentTimer = timePeriod;
+        stringTimer.setText(timeToString());
+    }
+
+    private void initTimer() {
 
         timer = new Timer(timeTick, new ActionListener() {
             @Override
@@ -67,29 +108,10 @@ public class Controller {
                     });
 
                     timer.stop();
-                    Toolkit.getDefaultToolkit().beep();
+                    resources.playSoundDong();
                 }
             }
         });
-    }
-
-    private void onClickStart() {
-
-        if(currentTimer < 1) {
-            currentTimer = timePeriod;
-        }
-
-        timer.start();
-    }
-
-    private void onClickPause() {
-        timer.stop();
-    }
-
-    private void onClickReset() {
-        timer.stop();
-        currentTimer = timePeriod;
-        stringTimer.setText(timeToString());
     }
 
     private String timeToString() {

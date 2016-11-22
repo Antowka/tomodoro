@@ -39,7 +39,7 @@ public class Resources {
      * Init dong sound
      */
     private void initDongSound() {
-        final URL resource = getClass().getResource("/sounds/dong.mp3");
+        final URL resource = getClass().getResource("/sounds/dong.wav");
         final Media media = new Media(resource.toString());
         soundDong = new MediaPlayer(media);
     }

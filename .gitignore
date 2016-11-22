@@ -3,5 +3,4 @@
 *.iml
 out/
 build/
-!build/libs/*.jar
-!out/artifacts/tomodoro/tomodoro.jar
+!build/libs/tomadoro-1.0-all.jar

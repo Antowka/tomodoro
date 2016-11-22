@@ -4,6 +4,7 @@ import javafx.scene.media.Media;
 import javafx.scene.media.MediaPlayer;
 
 import java.awt.*;
+import java.io.IOException;
 import java.net.URL;
 
 /**
@@ -13,6 +14,7 @@ public class Resources {
 
     private static Resources instance;
     private MediaPlayer soundDong;
+    private GoogleAnalyticsTracking googleAnalyticsTracking;
 
     /**
      * For singleton
@@ -24,6 +26,10 @@ public class Resources {
         if(instance == null) {
             instance = new Resources();
             instance.initDongSound();
+
+            //initialize google analytics
+            instance.googleAnalyticsTracking = new GoogleAnalyticsTracking("UA-87817427-1", "555");
+            instance.googleAnalyticsTracking.trackAction("event", "application", "start");
         }
 
         return instance;

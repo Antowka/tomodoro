@@ -1,120 +1,66 @@
-// [START tracking_code]
 package ru.antowka.tomodoro;
 
-import com.google.appengine.api.urlfetch.HTTPHeader;
-import com.google.appengine.api.urlfetch.HTTPMethod;
-import com.google.appengine.api.urlfetch.HTTPRequest;
-import com.google.appengine.api.urlfetch.HTTPResponse;
-import com.google.appengine.api.urlfetch.URLFetchService;
-import com.google.appengine.api.urlfetch.URLFetchServiceFactory;
 
+import javax.net.ssl.HttpsURLConnection;
+import java.io.DataOutputStream;
 import java.io.IOException;
-import java.io.UnsupportedEncodingException;
-import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.URL;
-import java.net.URLEncoder;
-import java.nio.charset.StandardCharsets;
-import java.util.LinkedHashMap;
-import java.util.Map;
 
 public class GoogleAnalyticsTracking {
 
-  private static final URL GA_URL_ENDPOINT = getGoogleAnalyticsEndpoint();
-  private static final HTTPHeader CONTENT_TYPE_HEADER =
-      new HTTPHeader("Content-Type", "application/x-www-form-urlencoded");
+  private String gaID;
+  private String clientID;
+  private URL urlGa;
+  private final String url = "https://www.google-analytics.com";
+  private final String USER_AGENT = "Mozilla/5.0";
 
-  private final String gaTrackingId;  // Tracking ID / Web property / Property ID
-  private String gaClientId = "555";  // Anonymous Client ID.
-  // Used to override the existing factory with perhaps a mock one for testing.
-  private URLFetchService urlFetchService = URLFetchServiceFactory.getURLFetchService();
+  GoogleAnalyticsTracking(String gaID, String clientID) {
+    this.gaID = gaID;
+    this.clientID = clientID;
 
-  private static URL getGoogleAnalyticsEndpoint() {
+    //init url
     try {
-      return new URL("http", "www.google-analytics.com", "/collect");
+      urlGa = new URL(url);
     } catch (MalformedURLException e) {
-      throw new RuntimeException(e);
+      e.printStackTrace();
     }
-  }
-
-  public GoogleAnalyticsTracking(String gaTrackingId) throws IOException {
-    if (gaTrackingId == null) {
-      throw new IllegalArgumentException("Can't set gaTrackingId to a null value.");
-    }
-    this.gaTrackingId = gaTrackingId;
-  }
-
-  public GoogleAnalyticsTracking setGoogleAnalyticsClientId(String gaClientId)
-      throws IOException {
-    if (gaClientId == null) {
-      throw new IllegalArgumentException("Can't set gaClientId to a null value.");
-    }
-    this.gaClientId = gaClientId;
-    return this;
-  }
-
-  public GoogleAnalyticsTracking setUrlFetchService(URLFetchService urlFetchService)
-      throws IOException {
-    if (urlFetchService == null) {
-      throw new IllegalArgumentException("Can't set urlFetchService to a null value.");
-    }
-    this.urlFetchService = urlFetchService;
-    return this;
   }
 
   /**
-   * Posts an Event Tracking message to Google Analytics.
    *
-   * @param category the required event category
-   * @param action the required event action
-   * @param label the optional event label
-   * @param value the optional value
-   * @return true if the call succeeded, otherwise false
-   * @exception IOException if the URL could not be posted to
+   * @param actionType - Event hit type; &t=event
+   * @param actionCategory - Event Category; &ec=video
+   * @param actionName - Event Action; &ea=play
    */
-  public int trackEventToGoogleAnalytics(String category, String action, String label, String value) throws IOException {
+  public void trackAction(String actionType, String actionCategory, String actionName) {
 
-    Map<String, String> map = new LinkedHashMap<>();
-    map.put("v", "1");             // Version.
-    map.put("tid", gaTrackingId);
-    map.put("cid", gaClientId);
-    map.put("t", "event");         // Event hit type.
-    map.put("ec", encode(category, true));
-    map.put("ea", encode(action, true));
-    map.put("el", encode(label, false));
-    map.put("ev", encode(value, false));
+    try {
+      HttpsURLConnection con = (HttpsURLConnection) urlGa.openConnection();
 
-    HTTPRequest request = new HTTPRequest(GA_URL_ENDPOINT, HTTPMethod.POST);
-    request.addHeader(CONTENT_TYPE_HEADER);
-    request.setPayload(getPostData(map));
+      con.setRequestMethod("POST");
 
-    HTTPResponse httpResponse = urlFetchService.fetch(request);
-    // Return True if the call was successful.
-    return httpResponse.getResponseCode();
-  }
+      //add reuqest header
+      con.setRequestMethod("POST");
+      con.setRequestProperty("User-Agent", USER_AGENT);
+      con.setRequestProperty("Accept-Language", "en-US,en;q=0.5");
 
-  private static byte[] getPostData(Map<String, String> map) {
-    StringBuilder sb = new StringBuilder();
-    for (Map.Entry<String, String> entry : map.entrySet()) {
-      sb.append(entry.getKey());
-      sb.append('=');
-      sb.append(entry.getValue());
-      sb.append('&');
+      con.setRequestProperty("v", "1");
+      con.setRequestProperty("tid", gaID);
+      con.setRequestProperty("cid", clientID);
+      con.setRequestProperty("t", actionType);
+
+      con.setRequestProperty("ec", actionCategory);
+      con.setRequestProperty("ea", actionName);
+
+      con.setDoOutput(true);
+      DataOutputStream wr = new DataOutputStream(con.getOutputStream());
+      wr.flush();
+      wr.close();
+
+    } catch (IOException e) {
+      e.printStackTrace();
     }
-    if (sb.length() > 0) {
-      sb.setLength(sb.length() - 1); // Remove the trailing &.
-    }
-    return sb.toString().getBytes(StandardCharsets.UTF_8);
-  }
 
-  private static String encode(String value, boolean required)
-      throws UnsupportedEncodingException {
-    if (value == null) {
-      if (required) {
-        throw new IllegalArgumentException("Required parameter not set.");
-      }
-      return "";
-    }
-    return URLEncoder.encode(value, StandardCharsets.UTF_8.name());
   }
 }

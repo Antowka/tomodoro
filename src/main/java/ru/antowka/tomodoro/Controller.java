@@ -52,6 +52,8 @@ public class Controller {
      */
     private final int timeTick = 1*1000;
 
+    private Thread trafficListener;
+
     /**
      * Resource for application
      */
@@ -70,6 +72,7 @@ public class Controller {
         btnReset.setOnAction((event) -> onClickReset());
 
         initTimer();
+        initTrafficListener();
     }
 
     private void onClickStart() {
@@ -78,16 +81,19 @@ public class Controller {
             currentTimer = timePeriod;
         }
         timer.start();
+        trafficListener.start();
     }
 
     private void onClickPause() {
         timer.stop();
+        trafficListener.interrupt();
     }
 
     private void onClickReset() {
         timer.stop();
         currentTimer = timePeriod;
         stringTimer.setText(timeToString());
+        trafficListener.interrupt();
     }
 
     private void initTimer() {
@@ -112,6 +118,10 @@ public class Controller {
                 }
             }
         });
+    }
+
+    private void initTrafficListener() {
+        trafficListener = new Thread(new TrafficSniffer());
     }
 
     private String timeToString() {

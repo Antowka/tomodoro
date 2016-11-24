@@ -15,7 +15,7 @@ public class Main extends Application {
         Controller controller = loader.getController();
         controller.initialize(primaryStage);
 
-        primaryStage.setTitle("Tomodoro");
+        primaryStage.setTitle("Tomadoro");
         primaryStage.setScene(new Scene(root));
         primaryStage.show();
     }

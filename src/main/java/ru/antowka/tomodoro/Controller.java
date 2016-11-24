@@ -52,7 +52,9 @@ public class Controller {
      */
     private final int timeTick = 1*1000;
 
-    private Thread trafficListener;
+    private Thread trafficThreadSniffer;
+
+    private TrafficSniffer trafficSniffer;
 
     /**
      * Resource for application
@@ -81,19 +83,30 @@ public class Controller {
             currentTimer = timePeriod;
         }
         timer.start();
-        trafficListener.start();
+
+        if(trafficThreadSniffer.getState() == Thread.State.NEW) {
+            trafficSniffer.enable();
+            trafficThreadSniffer.start();
+        } else if(trafficThreadSniffer.getState() == Thread.State.WAITING) {
+
+            synchronized (trafficSniffer) {
+                trafficSniffer.enable();
+                trafficSniffer.notifyAll();
+            }
+        }
     }
 
     private void onClickPause() {
         timer.stop();
-        trafficListener.interrupt();
+        trafficSniffer.disable();
     }
 
     private void onClickReset() {
         timer.stop();
         currentTimer = timePeriod;
         stringTimer.setText(timeToString());
-        trafficListener.interrupt();
+        trafficSniffer.disable();
+
     }
 
     private void initTimer() {
@@ -105,14 +118,7 @@ public class Controller {
                 stringTimer.setText(timeToString());
 
                 if(currentTimer == 0) {
-
-                    Platform.runLater(new Runnable() {
-                        @Override
-                        public void run() {
-                            primaryStage.requestFocus();
-                        }
-                    });
-
+                    Platform.runLater(() -> primaryStage.requestFocus());
                     timer.stop();
                     resources.playSoundDong();
                 }
@@ -121,7 +127,8 @@ public class Controller {
     }
 
     private void initTrafficListener() {
-        trafficListener = new Thread(new TrafficSniffer());
+        trafficSniffer = new TrafficSniffer();
+        trafficThreadSniffer = new Thread(trafficSniffer);
     }
 
     private String timeToString() {

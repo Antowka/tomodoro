@@ -15,6 +15,9 @@ public class TrafficSniffer implements Runnable {
     private static final String SNAPLEN_KEY = TrafficSniffer.class.getName() + ".snaplen";
     private static final int SNAPLEN = Integer.getInteger(SNAPLEN_KEY, 65536); // [bytes]
     private List<PcapNetworkInterface> allDevs;
+    private PacketListener listener;
+    private boolean enable = false;
+
 
     TrafficSniffer() {
 
@@ -30,6 +33,14 @@ public class TrafficSniffer implements Runnable {
             e.printStackTrace();
             return;
         }
+    }
+
+    public void enable() {
+        this.enable = true;
+    }
+
+    public void disable() {
+        this.enable = false;
     }
 
     public void run() {
@@ -48,7 +59,8 @@ public class TrafficSniffer implements Runnable {
             handle.setFilter("tcp port https", BpfProgram.BpfCompileMode.OPTIMIZE);
 
             //Listener for new packets
-            PacketListener listener = packet -> {
+            listener = packet -> {
+
                 System.out.println(handle.getTimestamp());
                 System.out.println(packet);
             };
@@ -57,6 +69,23 @@ public class TrafficSniffer implements Runnable {
                 handle.loop(COUNT, listener);
             } catch (InterruptedException e) {
                 e.printStackTrace();
+            }
+
+            while (true) {
+
+                //stop tread
+                if (!enable) {
+
+                    synchronized (this) {
+                        try {
+                            wait();
+                        } catch (InterruptedException e) {
+                            e.printStackTrace();
+                        }
+                    }
+                }
+
+                System.out.println("WORKING");
             }
         }
     }

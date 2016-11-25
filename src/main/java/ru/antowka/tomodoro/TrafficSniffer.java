@@ -1,6 +1,10 @@
 package ru.antowka.tomodoro;
 
 import org.pcap4j.core.*;
+import org.pcap4j.packet.TcpPacket;
+import org.pcap4j.packet.UdpPacket;
+
+import java.io.EOFException;
 import java.util.List;
 
 /**
@@ -9,9 +13,9 @@ import java.util.List;
 public class TrafficSniffer implements Runnable {
 
     private static final String COUNT_KEY = TrafficSniffer.class.getName() + ".count";
-    private static final int COUNT = Integer.getInteger(COUNT_KEY, 5);
+    private static final int COUNT = Integer.getInteger(COUNT_KEY, -1);
     private static final String READ_TIMEOUT_KEY = TrafficSniffer.class.getName() + ".readTimeout";
-    private static final int READ_TIMEOUT = Integer.getInteger(READ_TIMEOUT_KEY, 10); // [ms]
+    private static final int READ_TIMEOUT = Integer.getInteger(READ_TIMEOUT_KEY, 1000); // [ms]
     private static final String SNAPLEN_KEY = TrafficSniffer.class.getName() + ".snaplen";
     private static final int SNAPLEN = Integer.getInteger(SNAPLEN_KEY, 65536); // [bytes]
     private List<PcapNetworkInterface> allDevs;
@@ -56,26 +60,19 @@ public class TrafficSniffer implements Runnable {
         for(PcapNetworkInterface dev : allDevs) {
 
             final PcapHandle handle = dev.openLive(SNAPLEN, PcapNetworkInterface.PromiscuousMode.PROMISCUOUS, READ_TIMEOUT);
-            handle.setFilter("tcp port https", BpfProgram.BpfCompileMode.OPTIMIZE);
+            handle.setFilter("udp port 53", BpfProgram.BpfCompileMode.OPTIMIZE);
 
             //Listener for new packets
             listener = packet -> {
 
                 System.out.println(handle.getTimestamp());
-                System.out.println(packet);
-            };
-
-            try {
-                handle.loop(COUNT, listener);
-            } catch (InterruptedException e) {
-                e.printStackTrace();
-            }
-
-            while (true) {
+                if(packet.get(UdpPacket.class).getPayload() != null) {
+                    String hex = packet.get(UdpPacket.class).toHexString();
+                    System.out.println(convertHexToString(hex));
+                }
 
                 //stop tread
                 if (!enable) {
-
                     synchronized (this) {
                         try {
                             wait();
@@ -84,9 +81,20 @@ public class TrafficSniffer implements Runnable {
                         }
                     }
                 }
-
                 System.out.println("WORKING");
+            };
+
+            try {
+                handle.loop(COUNT, listener);
+            } catch (InterruptedException e) {
+                e.printStackTrace();
             }
         }
+    }
+
+    public String convertHexToString(String hex){
+
+        String r = "";
+        return r;
     }
 }

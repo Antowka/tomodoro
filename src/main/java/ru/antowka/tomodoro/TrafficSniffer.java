@@ -1,5 +1,6 @@
 package ru.antowka.tomodoro;
 
+import javafx.scene.control.Alert;
 import org.pcap4j.core.*;
 import org.pcap4j.packet.UdpPacket;
 
@@ -19,9 +20,10 @@ public class TrafficSniffer implements Runnable {
     private List<PcapNetworkInterface> allDevs;
     private PacketListener listener;
     private boolean enable = false;
+    private Controller controller;
 
 
-    TrafficSniffer() {
+    TrafficSniffer(Controller controller) {
 
         //init params
         String myLibraryPath = System.getProperty("user.dir");//or another absolute or relative path
@@ -35,6 +37,8 @@ public class TrafficSniffer implements Runnable {
             e.printStackTrace();
             return;
         }
+
+        this.controller = controller;
     }
 
     public void enable() {
@@ -106,6 +110,7 @@ public class TrafficSniffer implements Runnable {
     private void trafficValidator(String packetString) {
         if(packetString.contains("facebook")) {
             System.out.println("WARN!!! FACEBOOK!!!");
+            controller.alert();
         }
     }
 }

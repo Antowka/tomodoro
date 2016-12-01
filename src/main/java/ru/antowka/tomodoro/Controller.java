@@ -2,6 +2,7 @@ package ru.antowka.tomodoro;
 
 import javafx.application.Platform;
 import javafx.fxml.FXML;
+import javafx.scene.control.Alert;
 import javafx.scene.control.Button;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
@@ -56,6 +57,8 @@ public class Controller {
 
     private TrafficSniffer trafficSniffer;
 
+    private boolean isAlert = false;
+
     /**
      * Resource for application
      */
@@ -75,6 +78,10 @@ public class Controller {
 
         initTimer();
         initTrafficListener();
+    }
+
+    public void alert() {
+        isAlert = true;
     }
 
     private void onClickStart() {
@@ -122,12 +129,17 @@ public class Controller {
                     timer.stop();
                     resources.playSoundDong();
                 }
+
+                if (isAlert) {
+                    showAlert();
+                    isAlert = false;
+                }
             }
         });
     }
 
     private void initTrafficListener() {
-        trafficSniffer = new TrafficSniffer();
+        trafficSniffer = new TrafficSniffer(this);
         trafficThreadSniffer = new Thread(trafficSniffer);
     }
 
@@ -138,5 +150,15 @@ public class Controller {
                 TimeUnit.MILLISECONDS.toSeconds(currentTimer * 1000) -
                 TimeUnit.MINUTES.toSeconds(TimeUnit.MILLISECONDS.toMinutes(currentTimer * 1000))
         );
+    }
+
+    private void showAlert() {
+        synchronized (this) {
+            Alert alert = new Alert(Alert.AlertType.INFORMATION);
+            alert.setTitle("Warning title");
+            alert.setHeaderText("Information Alert");
+            alert.setContentText("This is an example of JavaFX 8 Dialogs... ");
+            alert.show();
+        }
     }
 }

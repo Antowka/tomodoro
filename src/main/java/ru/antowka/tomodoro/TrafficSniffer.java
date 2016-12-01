@@ -1,10 +1,8 @@
 package ru.antowka.tomodoro;
 
 import org.pcap4j.core.*;
-import org.pcap4j.packet.TcpPacket;
 import org.pcap4j.packet.UdpPacket;
 
-import java.io.EOFException;
 import java.util.List;
 
 /**
@@ -65,10 +63,13 @@ public class TrafficSniffer implements Runnable {
             //Listener for new packets
             listener = packet -> {
 
-                System.out.println(handle.getTimestamp());
                 if(packet.get(UdpPacket.class).getPayload() != null) {
-                    String hex = packet.get(UdpPacket.class).toHexString();
-                    System.out.println(convertHexToString(hex));
+
+                    //packet decode to string
+                    String packetString = byteDecoder(packet.get(UdpPacket.class).getRawData());
+
+                    //traffic validator
+                    trafficValidator(packetString);
                 }
 
                 //stop tread
@@ -92,9 +93,19 @@ public class TrafficSniffer implements Runnable {
         }
     }
 
-    public String convertHexToString(String hex){
+    /**
+     * Bytes to string - decoder
+     *
+     * @param rawBytes
+     * @return
+     */
+    private String byteDecoder(byte[] rawBytes){
+        return new String(rawBytes, 0, rawBytes.length);
+    }
 
-        String r = "";
-        return r;
+    private void trafficValidator(String packetString) {
+        if(packetString.contains("facebook")) {
+            System.out.println("WARN!!! FACEBOOK!!!");
+        }
     }
 }

@@ -26,20 +26,26 @@ public class TrafficSnifferFactory implements Factory<TrafficSniffer> {
      * @return
      */
     public static TrafficSnifferFactory getInstance() {
-
         if(trafficSnifferFactory == null) {
             trafficSnifferFactory = new TrafficSnifferFactory();
 
             String myLibraryPath = "";
 
-            if(System.getenv("os").contains("win")) {
-                myLibraryPath = System.getenv("SystemRoot" + "\\System\\");
+            if(System.getProperty("os.name").contains("Window")) {
+
+                myLibraryPath = System.getenv("SystemRoot") + "\\System\\";
+                System.setProperty("org.pcap4j.core.pcapLibName", "wpcap");
+                System.setProperty("org.pcap4j.core.packetLibName", "Packet");
+
+            } else if(System.getProperty("os.name").contains("Linux")){
+
+                myLibraryPath = "/usr/lib64";
+                System.setProperty("org.pcap4j.core.pcapLibName", "libpcap");
             }
 
             //init params for j4pcap
             System.setProperty("jna.library.path", myLibraryPath);
-            System.setProperty("org.pcap4j.core.pcapLibName", "wpcap");
-            System.setProperty("org.pcap4j.core.packetLibName", "Packet");
+
 
             trafficSnifferFactory.trafficSniffer = new TrafficSniffer(Arrays.asList(trafficSnifferFactory.blockedDomains));
         }

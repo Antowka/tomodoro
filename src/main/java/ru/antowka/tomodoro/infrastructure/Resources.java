@@ -12,21 +12,38 @@ import java.net.URL;
 public class Resources {
 
     private MediaPlayer soundDong;
-
-    /**
-     * Init dong sound
-     */
-    private void initDongSound() {
-        final URL resource = getClass().getResource("/sounds/dong.wav");
-        final Media media = new Media(resource.toString());
-        soundDong = new MediaPlayer(media);
-    }
+    private MediaPlayer soundSirena;
 
     /**
      * Play dong sound
      */
     public void playSoundDong() {
+        soundDong = loadSound("/sounds/dong.wav");
         Toolkit.getDefaultToolkit().beep();
+        soundDong.setCycleCount(MediaPlayer.INDEFINITE);
         soundDong.play();
+    }
+
+    /**
+     * Play sirena sound
+     */
+    public void  playSirena() {
+
+        soundSirena = loadSound("/sounds/sirena.wav");
+        Toolkit.getDefaultToolkit().beep();
+        soundSirena.setCycleCount(MediaPlayer.INDEFINITE);
+        soundSirena.play();
+    }
+
+    /**
+     * Load sound by path
+     *
+     * @param path
+     * @return
+     */
+    private MediaPlayer loadSound(String path) {
+        final URL resource = getClass().getResource(path);
+        final Media media = new Media(resource.toString());
+        return new MediaPlayer(media);
     }
 }

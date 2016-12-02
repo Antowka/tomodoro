@@ -2,10 +2,15 @@ package ru.antowka.tomodoro.infrastructure;
 
 import javafx.application.Platform;
 import javafx.scene.control.Alert;
-import javafx.stage.Stage;
 import org.pcap4j.core.*;
 import org.pcap4j.packet.UdpPacket;
+import ru.antowka.tomodoro.factory.ResourcesFactory;
 
+import java.net.Inet4Address;
+import java.net.InetAddress;
+import java.net.NetworkInterface;
+import java.net.SocketException;
+import java.util.Collections;
 import java.util.List;
 
 /**
@@ -19,22 +24,27 @@ public class TrafficSniffer extends Thread {
     private static final int READ_TIMEOUT = Integer.getInteger(READ_TIMEOUT_KEY, 1000); // [ms]
     private static final String SNAPLEN_KEY = TrafficSniffer.class.getName() + ".snaplen";
     private static final int SNAPLEN = Integer.getInteger(SNAPLEN_KEY, 65536); // [bytes]
-    private List<PcapNetworkInterface> allDevs;
+    private PcapNetworkInterface dev;
     private boolean enable = false;
     private Alert alert;
     private List<String> blockedDomains;
+    private Resources resources;
+
 
     public TrafficSniffer(List<String> blockedDomains) {
 
         this.blockedDomains = blockedDomains;
 
+        resources = ResourcesFactory
+                .getInstance()
+                .getInstanceProduct();
+
         alert = new Alert(Alert.AlertType.WARNING);
 
         try {
-            allDevs = Pcaps.findAllDevs();
-        } catch (PcapNativeException e) {
+            dev = Pcaps.getDevByAddress(getIp());
+        } catch (PcapNativeException | SocketException e) {
             e.printStackTrace();
-            return;
         }
     }
 
@@ -42,7 +52,7 @@ public class TrafficSniffer extends Thread {
     @Override
     public void run() {
         try {
-            listenTraffic();
+            listenDevice(dev);
         } catch (NotOpenException | PcapNativeException e) {
             e.printStackTrace();
         }
@@ -56,43 +66,43 @@ public class TrafficSniffer extends Thread {
         this.enable = false;
     }
 
-    private void listenTraffic() throws PcapNativeException, NotOpenException {
+    private void listenDevice(PcapNetworkInterface dev) throws PcapNativeException, NotOpenException {
 
-        for(PcapNetworkInterface dev : allDevs) {
+        System.out.println(dev.getName());
 
-            final PcapHandle handle = dev.openLive(SNAPLEN, PcapNetworkInterface.PromiscuousMode.PROMISCUOUS, READ_TIMEOUT);
-            handle.setFilter("udp port 53", BpfProgram.BpfCompileMode.OPTIMIZE);
+        final PcapHandle handle = dev.openLive(SNAPLEN, PcapNetworkInterface.PromiscuousMode.PROMISCUOUS, READ_TIMEOUT);
 
-            //Listener for new packets
-            PacketListener listener = packet -> {
+        handle.setFilter("udp port 53", BpfProgram.BpfCompileMode.NONOPTIMIZE);
 
-                if (packet.get(UdpPacket.class).getPayload() != null) {
+        //Listener for new packets
+        PacketListener listener = packet -> {
 
-                    //packet decode to string
-                    String packetString = byteDecoder(packet.get(UdpPacket.class).getRawData());
+            if (packet.get(UdpPacket.class).getPayload() != null) {
 
-                    //traffic validator
-                    trafficValidator(packetString);
-                }
+                //packet decode to string
+                String packetString = byteDecoder(packet.get(UdpPacket.class).getRawData());
 
-                //stop tread
-                if (!enable) {
-                    synchronized (this) {
-                        try {
-                            wait();
-                        } catch (InterruptedException e) {
-                            e.printStackTrace();
-                        }
+                //traffic validator
+                trafficValidator(packetString);
+            }
+
+            //stop tread
+            if (!enable) {
+                synchronized (this) {
+                    try {
+                        wait();
+                    } catch (InterruptedException e) {
+                        e.printStackTrace();
                     }
                 }
-                System.out.println("WORKING");
-            };
-
-            try {
-                handle.loop(COUNT, listener);
-            } catch (InterruptedException e) {
-                e.printStackTrace();
             }
+            System.out.println("WORKING");
+        };
+
+        try {
+            handle.loop(COUNT, listener);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
         }
     }
 
@@ -103,8 +113,14 @@ public class TrafficSniffer extends Thread {
     private void trafficValidator(String packetString) {
 
         for(String blockedDomain : blockedDomains) {
-            if(packetString.contains(blockedDomain) && !alert.isShowing()) {
-                Platform.runLater(() -> showAlert(blockedDomain));
+
+//            if(packetString.contains(blockedDomain) && !alert.isShowing()) {
+//                resources.playSirena();
+//                Platform.runLater(() -> showAlert(blockedDomain));
+//            }
+
+            if(packetString.contains(blockedDomain)) {
+                resources.playSirena();
             }
         }
     }
@@ -114,5 +130,13 @@ public class TrafficSniffer extends Thread {
         alert.setHeaderText("You are trying open web-site: " + blockedDomainName);
         alert.setContentText("Please close tab with blocked web site: " + blockedDomainName);
         alert.show();
+    }
+
+    public static InetAddress getIp() throws SocketException {
+
+        return Collections.list(NetworkInterface.getNetworkInterfaces()).stream()
+                .flatMap(i -> Collections.list(i.getInetAddresses()).stream())
+                .filter(ip -> ip instanceof Inet4Address && ip.isSiteLocalAddress())
+                .findFirst().orElseThrow(RuntimeException::new);
     }
 }

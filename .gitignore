@@ -3,4 +3,3 @@
 *.iml
 out/
 build/
-!build/libs/tomadoro-1.0-all.jar

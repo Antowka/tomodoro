@@ -50,5 +50,5 @@ dependencies {
 
 task copyJarToBin(type: Copy) {
     from "build/libs/tomodoro-1.0-all.jar" // shortcut for createJar.outputs.files
-    into "bin"
+    into "bin/"
 }

@@ -1,4 +1,4 @@
-package ru.antowka.tomodoro;
+package ru.antowka.tomodoro.infrastructure;
 
 
 import javax.net.ssl.HttpsURLConnection;
@@ -15,7 +15,7 @@ public class GoogleAnalyticsTracking {
   private final String url = "https://www.google-analytics.com";
   private final String USER_AGENT = "Mozilla/5.0";
 
-  GoogleAnalyticsTracking(String gaID, String clientID) {
+  public GoogleAnalyticsTracking(String gaID, String clientID) {
     this.gaID = gaID;
     this.clientID = clientID;
 

@@ -1,6 +1,8 @@
-package ru.antowka.tomodoro;
+package ru.antowka.tomodoro.infrastructure;
 
+import javafx.application.Platform;
 import javafx.scene.control.Alert;
+import javafx.stage.Stage;
 import org.pcap4j.core.*;
 import org.pcap4j.packet.UdpPacket;
 
@@ -9,7 +11,7 @@ import java.util.List;
 /**
  * Traffic sniffer
  */
-public class TrafficSniffer implements Runnable {
+public class TrafficSniffer extends Thread {
 
     private static final String COUNT_KEY = TrafficSniffer.class.getName() + ".count";
     private static final int COUNT = Integer.getInteger(COUNT_KEY, -1);
@@ -18,18 +20,15 @@ public class TrafficSniffer implements Runnable {
     private static final String SNAPLEN_KEY = TrafficSniffer.class.getName() + ".snaplen";
     private static final int SNAPLEN = Integer.getInteger(SNAPLEN_KEY, 65536); // [bytes]
     private List<PcapNetworkInterface> allDevs;
-    private PacketListener listener;
     private boolean enable = false;
-    private Controller controller;
+    private Alert alert;
+    private List<String> blockedDomains;
 
+    public TrafficSniffer(List<String> blockedDomains) {
 
-    TrafficSniffer(Controller controller) {
+        this.blockedDomains = blockedDomains;
 
-        //init params
-        String myLibraryPath = System.getProperty("user.dir");//or another absolute or relative path
-        System.setProperty("jna.library.path", myLibraryPath + "\\libs\\");
-        System.setProperty("org.pcap4j.core.pcapLibName", "wpcap");
-        System.setProperty("org.pcap4j.core.packetLibName", "Packet");
+        alert = new Alert(Alert.AlertType.WARNING);
 
         try {
             allDevs = Pcaps.findAllDevs();
@@ -37,8 +36,16 @@ public class TrafficSniffer implements Runnable {
             e.printStackTrace();
             return;
         }
+    }
 
-        this.controller = controller;
+
+    @Override
+    public void run() {
+        try {
+            listenTraffic();
+        } catch (NotOpenException | PcapNativeException e) {
+            e.printStackTrace();
+        }
     }
 
     public void enable() {
@@ -49,14 +56,6 @@ public class TrafficSniffer implements Runnable {
         this.enable = false;
     }
 
-    public void run() {
-        try {
-            listenTraffic();
-        } catch (NotOpenException | PcapNativeException e) {
-            e.printStackTrace();
-        }
-    }
-
     private void listenTraffic() throws PcapNativeException, NotOpenException {
 
         for(PcapNetworkInterface dev : allDevs) {
@@ -65,9 +64,9 @@ public class TrafficSniffer implements Runnable {
             handle.setFilter("udp port 53", BpfProgram.BpfCompileMode.OPTIMIZE);
 
             //Listener for new packets
-            listener = packet -> {
+            PacketListener listener = packet -> {
 
-                if(packet.get(UdpPacket.class).getPayload() != null) {
+                if (packet.get(UdpPacket.class).getPayload() != null) {
 
                     //packet decode to string
                     String packetString = byteDecoder(packet.get(UdpPacket.class).getRawData());
@@ -97,20 +96,23 @@ public class TrafficSniffer implements Runnable {
         }
     }
 
-    /**
-     * Bytes to string - decoder
-     *
-     * @param rawBytes
-     * @return
-     */
     private String byteDecoder(byte[] rawBytes){
         return new String(rawBytes, 0, rawBytes.length);
     }
 
     private void trafficValidator(String packetString) {
-        if(packetString.contains("facebook")) {
-            System.out.println("WARN!!! FACEBOOK!!!");
-            controller.alert();
+
+        for(String blockedDomain : blockedDomains) {
+            if(packetString.contains(blockedDomain) && !alert.isShowing()) {
+                Platform.runLater(() -> showAlert(blockedDomain));
+            }
         }
+    }
+
+    private void showAlert(String blockedDomainName) {
+        alert.setTitle("Traffic Control");
+        alert.setHeaderText("You are trying open web-site: " + blockedDomainName);
+        alert.setContentText("Please close tab with blocked web site: " + blockedDomainName);
+        alert.show();
     }
 }

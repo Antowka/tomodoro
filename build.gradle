@@ -47,3 +47,8 @@ dependencies {
     testCompile "org.powermock:powermock-api-mockito:1.6.4"
 
 }
+
+task copyJarToBin(type: Copy) {
+    from "build/libs/tomodoro-1.0-all.jar" // shortcut for createJar.outputs.files
+    into "bin"
+}

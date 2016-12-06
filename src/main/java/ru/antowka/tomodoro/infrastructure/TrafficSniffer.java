@@ -120,6 +120,7 @@ public class TrafficSniffer extends Thread {
 //            }
 
             if(packetString.contains(blockedDomain)) {
+                System.out.println("Block resource:" + blockedDomain);
                 resources.playSirena();
             }
         }

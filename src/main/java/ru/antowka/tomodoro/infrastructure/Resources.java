@@ -18,21 +18,31 @@ public class Resources {
      * Play dong sound
      */
     public void playSoundDong() {
-        soundDong = loadSound("/sounds/dong.wav");
-        Toolkit.getDefaultToolkit().beep();
-        soundDong.setCycleCount(MediaPlayer.INDEFINITE);
-        soundDong.play();
+        play(soundDong, "/sounds/dong.wav");
     }
 
     /**
      * Play sirena sound
      */
     public void  playSirena() {
+        play(soundSirena, "/sounds/sirena.wav");
+    }
 
-        soundSirena = loadSound("/sounds/sirena.wav");
-        Toolkit.getDefaultToolkit().beep();
-        soundSirena.setCycleCount(MediaPlayer.INDEFINITE);
-        soundSirena.play();
+    /**
+     * Play any player
+     *
+     * @param player
+     * @param path
+     */
+    private void play(MediaPlayer player, String path) {
+
+        //play only if not playing
+        if(player == null || !player.getStatus().equals(MediaPlayer.Status.PLAYING)) {
+            player = loadSound(path);
+            Toolkit.getDefaultToolkit().beep();
+            player.setCycleCount(MediaPlayer.INDEFINITE);
+            player.play();
+        }
     }
 
     /**

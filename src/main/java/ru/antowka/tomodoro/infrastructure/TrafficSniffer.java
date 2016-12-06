@@ -6,12 +6,12 @@ import org.pcap4j.core.*;
 import org.pcap4j.packet.UdpPacket;
 import ru.antowka.tomodoro.factory.ResourcesFactory;
 
-import java.net.Inet4Address;
-import java.net.InetAddress;
-import java.net.NetworkInterface;
-import java.net.SocketException;
+import java.io.IOException;
+import java.net.*;
+import java.nio.channels.SocketChannel;
 import java.util.Collections;
 import java.util.List;
+import java.util.stream.Collectors;
 
 /**
  * Traffic sniffer
@@ -134,9 +134,31 @@ public class TrafficSniffer extends Thread {
 
     public static InetAddress getIp() throws SocketException {
 
-        return Collections.list(NetworkInterface.getNetworkInterfaces()).stream()
+        List<InetAddress> ifaces = Collections.list(NetworkInterface.getNetworkInterfaces()).stream()
                 .flatMap(i -> Collections.list(i.getInetAddresses()).stream())
-                .filter(ip -> ip instanceof Inet4Address && ip.isSiteLocalAddress())
-                .findFirst().orElseThrow(RuntimeException::new);
+                .filter(ip -> ip instanceof Inet4Address)
+                .collect(Collectors.toList());
+
+
+        for (InetAddress address: ifaces) {
+
+            try (SocketChannel socket = SocketChannel.open()) {
+                // again, use a big enough timeout
+                socket.socket().setSoTimeout(3000);
+
+                // bind the socket to your local interface
+                socket.bind(new InetSocketAddress(address, 8080));
+                // try to connect to *somewhere*
+                socket.connect(new InetSocketAddress("google.com", 80));
+
+            } catch (IOException ex) {
+
+                if (ex.getMessage().contains("Address already in use: connect")) {
+                    return address;
+                }
+            }
+        }
+
+        return null;
     }
 }

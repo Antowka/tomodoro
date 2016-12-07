@@ -1,6 +1,5 @@
 package ru.antowka.tomodoro.infrastructure;
 
-import javafx.application.Platform;
 import javafx.scene.control.Alert;
 import org.pcap4j.core.*;
 import org.pcap4j.packet.UdpPacket;
@@ -40,20 +39,14 @@ public class TrafficSniffer extends Thread {
                 .getInstanceProduct();
 
         alert = new Alert(Alert.AlertType.WARNING);
-
-        try {
-            dev = Pcaps.getDevByAddress(getIp());
-        } catch (PcapNativeException | SocketException e) {
-            e.printStackTrace();
-        }
     }
-
 
     @Override
     public void run() {
         try {
+            dev = Pcaps.getDevByAddress(getIp());
             listenDevice(dev);
-        } catch (NotOpenException | PcapNativeException e) {
+        } catch (NotOpenException | PcapNativeException | SocketException e) {
             e.printStackTrace();
         }
     }

@@ -26,6 +26,7 @@ public class TrafficSnifferFactory implements Factory<TrafficSniffer> {
      * @return
      */
     public static TrafficSnifferFactory getInstance() {
+
         if(trafficSnifferFactory == null) {
             trafficSnifferFactory = new TrafficSnifferFactory();
 
@@ -45,7 +46,6 @@ public class TrafficSnifferFactory implements Factory<TrafficSniffer> {
 
             //init params for j4pcap
             System.setProperty("jna.library.path", myLibraryPath);
-
 
             trafficSnifferFactory.trafficSniffer = new TrafficSniffer(Arrays.asList(trafficSnifferFactory.blockedDomains));
         }

@@ -1,7 +1,10 @@
 package ru.antowka.tomodoro.infrastructure.settings;
 
 /**
- * Created by admin on 08.12.2016.
+ * Interface for setting manager
  */
-public class SettingManager {
+public interface SettingManager<T> {
+
+    T loadSettings();
+    void saveSettings(T setting);
 }

@@ -1,18 +1,36 @@
 package ru.antowka.tomodoro.infrastructure.settings.setting;
 
-import lombok.Data;
-
-import java.util.HashMap;
-import java.util.Map;
+import javax.xml.bind.annotation.*;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * Settings for TrafficSniffer
  */
-@Data
+@XmlRootElement
 public class TrafficSnifferSetting {
 
-    private static final String settingFileName = "traffic-control-setting.xml";
-
     private boolean enable;
-    private Map<String, Boolean> blockedDomains = new HashMap<>();
+
+    private List<String> blockedDomains = new ArrayList<>();
+
+
+    public boolean isEnable() {
+        return enable;
+    }
+
+    @XmlElement
+    public void setEnable(boolean enable) {
+        this.enable = enable;
+    }
+
+    public List<String> getBlockedDomains() {
+        return blockedDomains;
+    }
+
+    @XmlElementWrapper
+    @XmlElement(name="blockedDomain")
+    public void setBlockedDomains(List<String> blockedDomains) {
+        this.blockedDomains = blockedDomains;
+    }
 }

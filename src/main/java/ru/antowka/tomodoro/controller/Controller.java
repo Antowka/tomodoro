@@ -18,6 +18,7 @@ import ru.antowka.tomodoro.factory.TrafficSnifferFactory;
 import ru.antowka.tomodoro.infrastructure.GoogleAnalyticsTracking;
 import ru.antowka.tomodoro.infrastructure.Resources;
 import ru.antowka.tomodoro.infrastructure.TrafficSniffer;
+import ru.antowka.tomodoro.infrastructure.settings.impl.TrafficSnifferSettingManager;
 
 import javax.swing.*;
 import java.io.IOException;
@@ -165,9 +166,9 @@ public class Controller {
             Scene scene = new Scene(page);
             dialogStage.setScene(scene);
 
-            // Set the person into the controller
+            // Set properties into the controller
             TrafficSnifferController controller = loader.getController();
-            controller.setDialogStage(dialogStage);
+            controller.initialize(dialogStage, new TrafficSnifferSettingManager());
 
             // Show the dialog and wait until the user closes it
             dialogStage.showAndWait();

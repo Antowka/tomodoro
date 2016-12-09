@@ -13,20 +13,25 @@ import java.nio.file.Paths;
  */
 public class XmlHandler<T> {
 
-    private T type;
+    private Path pathFile;
+    private Class<T> clazz;
+
+
+    public XmlHandler(String filePath, Class<T> clazz) {
+        this.clazz = clazz;
+        this.pathFile = Paths.get("settings"+ System.getProperty("file.separator") + filePath);
+    }
 
     /**
      * Load object from xml
      *
-     * @param pathToFile
      * @return
      */
-    public T loadDataFromFile(String pathToFile) {
+    public T loadDataFromFile() {
         try {
-            JAXBContext context = JAXBContext.newInstance(type.getClass());
-            Unmarshaller um = context.createUnmarshaller();
 
-            Path pathFile = Paths.get(pathToFile);
+            JAXBContext context = JAXBContext.newInstance(clazz);
+            Unmarshaller um = context.createUnmarshaller();
 
             // Чтение XML из файла и демаршализация.
             return (T)um.unmarshal(pathFile.toFile());
@@ -36,7 +41,7 @@ public class XmlHandler<T> {
             Alert alert = new Alert(Alert.AlertType.ERROR);
             alert.setTitle("Error");
             alert.setHeaderText("Could not load data");
-            alert.setContentText("Could not load data from file:\n" + pathToFile);
+            alert.setContentText("Could not load data from file:\n" + pathFile.toString());
             alert.showAndWait();
         }
 
@@ -46,17 +51,15 @@ public class XmlHandler<T> {
     /**
      * Save object to xml file
      *
-     * @param pathToFile
      * @param object
      */
-    public void saveDataToFile(String pathToFile, T object) {
+    public void saveDataToFile(T object) {
         try {
             JAXBContext context = JAXBContext
-                    .newInstance(type.getClass());
+                    .newInstance(clazz);
 
             Marshaller m = context.createMarshaller();
             m.setProperty(Marshaller.JAXB_FORMATTED_OUTPUT, true);
-            Path pathFile = Paths.get(pathToFile);
 
             // Маршаллируем и сохраняем XML в файл.
             m.marshal(object, pathFile.toFile());
@@ -66,7 +69,7 @@ public class XmlHandler<T> {
             Alert alert = new Alert(Alert.AlertType.ERROR);
             alert.setTitle("Error");
             alert.setHeaderText("Could not save data");
-            alert.setContentText("Could not save data to file:\n" + pathToFile);
+            alert.setContentText("Could not save data to file:\n" + pathFile.toString());
 
             alert.showAndWait();
         }

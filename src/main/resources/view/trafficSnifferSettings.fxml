@@ -10,7 +10,7 @@
    <children>
       <Button layoutX="53.0" layoutY="397.0" mnemonicParsing="false" prefHeight="25.0" prefWidth="73.0" text="Save" />
       <Button layoutX="175.0" layoutY="397.0" mnemonicParsing="false" prefHeight="25.0" prefWidth="73.0" text="Cancel" />
-      <CheckBox layoutX="22.0" layoutY="23.0" mnemonicParsing="false" text="Enable Traffic Control" />
+      <CheckBox fx:id="enableControl" layoutX="22.0" layoutY="23.0" mnemonicParsing="false" text="Enable Traffic Control" />
       <TableView editable="true" layoutX="22.0" layoutY="53.0" prefHeight="305.0" prefWidth="262.0">
         <columns>
           <TableColumn prefWidth="193.0" text="block keyword" />

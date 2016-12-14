@@ -1,7 +1,14 @@
 <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
 <trafficSnifferSetting>
     <blockedDomains>
-        <blockedDomain>facebook</blockedDomain>
+        <blockedDomain>
+            <blocked>true</blocked>
+            <domain>facebook</domain>
+        </blockedDomain>
+        <blockedDomain>
+            <blocked>false</blocked>
+            <domain>vk</domain>
+        </blockedDomain>
     </blockedDomains>
     <enable>true</enable>
 </trafficSnifferSetting>

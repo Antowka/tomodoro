@@ -12,7 +12,7 @@ public class TrafficSnifferSetting {
 
     private boolean enable;
 
-    private List<String> blockedDomains = new ArrayList<>();
+    private List<BlockedDomain> blockedDomains = new ArrayList<>();
 
 
     public boolean isEnable() {
@@ -24,13 +24,13 @@ public class TrafficSnifferSetting {
         this.enable = enable;
     }
 
-    public List<String> getBlockedDomains() {
+    public List<BlockedDomain> getBlockedDomains() {
         return blockedDomains;
     }
 
     @XmlElementWrapper
     @XmlElement(name="blockedDomain")
-    public void setBlockedDomains(List<String> blockedDomains) {
+    public void setBlockedDomains(List<BlockedDomain> blockedDomains) {
         this.blockedDomains = blockedDomains;
     }
 }

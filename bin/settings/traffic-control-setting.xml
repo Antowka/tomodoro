@@ -6,7 +6,7 @@
             <domain>facebook</domain>
         </blockedDomain>
         <blockedDomain>
-            <blocked>false</blocked>
+            <blocked>true</blocked>
             <domain>vk</domain>
         </blockedDomain>
     </blockedDomains>

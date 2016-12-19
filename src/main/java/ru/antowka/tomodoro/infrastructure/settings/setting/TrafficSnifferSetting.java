@@ -14,6 +14,8 @@ public class TrafficSnifferSetting {
 
     private List<BlockedDomain> blockedDomains = new ArrayList<>();
 
+    private String systemPath;
+
 
     public boolean isEnable() {
         return enable;
@@ -32,5 +34,14 @@ public class TrafficSnifferSetting {
     @XmlElement(name="blockedDomain")
     public void setBlockedDomains(List<BlockedDomain> blockedDomains) {
         this.blockedDomains = blockedDomains;
+    }
+
+    public String getSystemPath() {
+        return systemPath;
+    }
+
+    @XmlElement
+    public void setSystemPath(String systemPath) {
+        this.systemPath = systemPath;
     }
 }

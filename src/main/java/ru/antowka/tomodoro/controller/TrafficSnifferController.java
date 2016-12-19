@@ -4,7 +4,9 @@ package ru.antowka.tomodoro.controller;
 import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.SimpleBooleanProperty;
 import javafx.collections.FXCollections;
+import javafx.collections.ObservableList;
 import javafx.fxml.FXML;
+import javafx.scene.control.Button;
 import javafx.scene.control.CheckBox;
 import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableView;
@@ -27,8 +29,16 @@ public class TrafficSnifferController {
     @FXML
     private TableView blockedList;
 
+    @FXML
+    private Button save;
+
     private Stage dialogStage;
+
     private SettingManager<TrafficSnifferSetting> settingManager;
+
+    private ObservableList<BlockedDomain> blockedDomains;
+
+    private TrafficSnifferSetting settings;
 
     public void initialize(Stage dialogStage, SettingManager<TrafficSnifferSetting> settingManager) {
 
@@ -36,29 +46,37 @@ public class TrafficSnifferController {
         this.dialogStage = dialogStage;
         dialogStage.setTitle("Traffic Control Settings");
 
-        TrafficSnifferSetting settings = settingManager.loadSettings();
+        settings = settingManager.loadSettings();
+        save.setOnAction(event -> saveSettings());
+        blockedDomains = FXCollections.observableList(settings.getBlockedDomains());
+
         enableControl.setSelected(settings.isEnable());
 
         TableColumn firstNameCol = (TableColumn)blockedList.getColumns().get(0);
-        firstNameCol.setCellValueFactory(
-                new PropertyValueFactory<BlockedDomain, String>("domain"));
+        firstNameCol.setCellValueFactory(new PropertyValueFactory<BlockedDomain, String>("domain"));
         firstNameCol.setCellFactory(TextFieldTableCell.forTableColumn());
 
         TableColumn secondNameCol = (TableColumn)blockedList.getColumns().get(1);
-        secondNameCol.setCellValueFactory(
-                new PropertyValueFactory<BlockedDomain, CheckBox>("blocked"));
+        secondNameCol.setCellValueFactory(new PropertyValueFactory<BlockedDomain, CheckBox>("blocked"));
 
         secondNameCol.setCellFactory(col -> {
             CheckBoxTableCell<BlockedDomain, Boolean> cell = new CheckBoxTableCell<>(index -> {
                 BooleanProperty active = new SimpleBooleanProperty(((BlockedDomain)blockedList.getItems().get(index)).isBlocked());
                 active.addListener((obs, wasActive, isNowActive) -> {
-
+                    blockedDomains.get(index).setBlocked(isNowActive);
                 });
                 return active ;
             });
             return cell ;
         });
 
-        blockedList.setItems(FXCollections.observableList(settings.getBlockedDomains()));
+        blockedList.setItems(blockedDomains);
+    }
+
+    /**
+     * Save settings to xml and update setting object
+     */
+    private void saveSettings() {
+        settingManager.saveSettings(settings);
     }
 }

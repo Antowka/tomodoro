@@ -87,7 +87,6 @@ public class Controller {
     private TrafficSnifferController menuController;
 
 
-
     public void initialize(Stage primaryStage) {
 
         //sounds

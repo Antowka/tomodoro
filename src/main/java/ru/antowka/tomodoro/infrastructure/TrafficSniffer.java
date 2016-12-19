@@ -4,6 +4,10 @@ import javafx.scene.control.Alert;
 import org.pcap4j.core.*;
 import org.pcap4j.packet.UdpPacket;
 import ru.antowka.tomodoro.factory.ResourcesFactory;
+import ru.antowka.tomodoro.infrastructure.settings.SettingManager;
+import ru.antowka.tomodoro.infrastructure.settings.impl.TrafficSnifferSettingManager;
+import ru.antowka.tomodoro.infrastructure.settings.setting.BlockedDomain;
+import ru.antowka.tomodoro.infrastructure.settings.setting.TrafficSnifferSetting;
 
 import java.io.IOException;
 import java.net.*;
@@ -26,13 +30,12 @@ public class TrafficSniffer extends Thread {
     private PcapNetworkInterface dev;
     private boolean enable = false;
     private Alert alert;
-    private List<String> blockedDomains;
     private Resources resources;
+    private SettingManager<TrafficSnifferSetting> settingManager;
 
+    public TrafficSniffer(SettingManager<TrafficSnifferSetting> settingManager) {
 
-    public TrafficSniffer(List<String> blockedDomains) {
-
-        this.blockedDomains = blockedDomains;
+        this.settingManager = settingManager;
 
         resources = ResourcesFactory
                 .getInstance()
@@ -105,18 +108,20 @@ public class TrafficSniffer extends Thread {
 
     private void trafficValidator(String packetString) {
 
-        for(String blockedDomain : blockedDomains) {
+        TrafficSnifferSetting settings = settingManager.loadSettings();
 
-//            if(packetString.contains(blockedDomain) && !alert.isShowing()) {
-//                resources.playSirena();
-//                Platform.runLater(() -> showAlert(blockedDomain));
-//            }
+//      if(packetString.contains(blockedDomain) && !alert.isShowing()) {
+//          resources.playSirena();
+//          Platform.runLater(() -> showAlert(blockedDomain));
+//      }
 
-            if(packetString.contains(blockedDomain)) {
-                System.out.println("Block resource:" + blockedDomain);
-                resources.playSirena();
-            }
-        }
+        settings.getBlockedDomains()
+                .stream()
+                .filter(blockedDomain -> blockedDomain.isBlocked() && packetString.contains(blockedDomain.getDomain()))
+                .forEach(blockedDomain -> {
+                    System.out.println("Block resource:" + blockedDomain);
+                    resources.playSirena();
+                });
     }
 
     private void showAlert(String blockedDomainName) {

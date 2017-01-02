@@ -10,5 +10,5 @@
             <domain>vk</domain>
         </blockedDomain>
     </blockedDomains>
-    <enable>true</enable>
+    <enable>false</enable>
 </trafficSnifferSetting>

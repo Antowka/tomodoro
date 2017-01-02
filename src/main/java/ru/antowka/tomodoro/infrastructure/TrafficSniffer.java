@@ -46,6 +46,7 @@ public class TrafficSniffer extends Thread {
 
     @Override
     public void run() {
+
         try {
             dev = Pcaps.getDevByAddress(getIp());
             listenDevice(dev);
@@ -55,6 +56,14 @@ public class TrafficSniffer extends Thread {
     }
 
     public void enable() {
+
+        TrafficSnifferSetting settings = settingManager.loadSettings();
+
+        if (!settings.isEnable()) {
+            disable();
+            return;
+        }
+
         this.enable = true;
     }
 

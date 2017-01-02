@@ -3,6 +3,8 @@ package ru.antowka.tomodoro.controller;
 
 import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.SimpleBooleanProperty;
+import javafx.beans.value.ChangeListener;
+import javafx.beans.value.ObservableValue;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.fxml.FXML;
@@ -32,6 +34,9 @@ public class TrafficSnifferController {
     @FXML
     private Button save;
 
+    @FXML
+    private Button cancel;
+
     private Stage dialogStage;
 
     private SettingManager<TrafficSnifferSetting> settingManager;
@@ -47,10 +52,17 @@ public class TrafficSnifferController {
         dialogStage.setTitle("Traffic Control Settings");
 
         settings = settingManager.loadSettings();
+
+        //initialize events
         save.setOnAction(event -> saveSettings());
+        cancel.setOnAction(event -> cancel());
+
         blockedDomains = FXCollections.observableList(settings.getBlockedDomains());
 
         enableControl.setSelected(settings.isEnable());
+        enableControl.selectedProperty().addListener((ov, old_val, new_val) -> {
+            settings.setEnable(new_val);
+        });
 
         TableColumn firstNameCol = (TableColumn)blockedList.getColumns().get(0);
         firstNameCol.setCellValueFactory(new PropertyValueFactory<BlockedDomain, String>("domain"));
@@ -78,5 +90,12 @@ public class TrafficSnifferController {
      */
     private void saveSettings() {
         settingManager.saveSettings(settings);
+    }
+
+    /**
+     * Handle cancel button
+     */
+    private void cancel() {
+        dialogStage.close();
     }
 }

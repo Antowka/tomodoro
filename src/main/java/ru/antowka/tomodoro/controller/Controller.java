@@ -188,6 +188,7 @@ public class Controller {
 
             trafficSniffer.enable();
             trafficSniffer.start();
+
         } else if(trafficSniffer.getState() == Thread.State.WAITING) {
 
             synchronized (trafficSniffer) {

@@ -16,6 +16,8 @@ public class TrafficSnifferSetting {
 
     private String systemPath;
 
+    private String interfaceName;
+
 
     public boolean isEnable() {
         return enable;
@@ -43,5 +45,14 @@ public class TrafficSnifferSetting {
     @XmlElement
     public void setSystemPath(String systemPath) {
         this.systemPath = systemPath;
+    }
+
+    public String getInterfaceName() {
+        return interfaceName;
+    }
+
+    @XmlElement
+    public void setInterfaceName(String interfaceName) {
+        this.interfaceName = interfaceName;
     }
 }

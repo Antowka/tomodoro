@@ -28,6 +28,7 @@ public class TrafficSniffer extends Thread {
     private static final String SNAPLEN_KEY = TrafficSniffer.class.getName() + ".snaplen";
     private static final int SNAPLEN = Integer.getInteger(SNAPLEN_KEY, 65536); // [bytes]
     private PcapNetworkInterface dev;
+    private InetAddress ipAddress;
     private boolean enable = false;
     private Alert alert;
     private Resources resources;
@@ -46,13 +47,7 @@ public class TrafficSniffer extends Thread {
 
     @Override
     public void run() {
-
-        try {
-            dev = Pcaps.getDevByAddress(getIp());
-            listenDevice(dev);
-        } catch (NotOpenException | PcapNativeException | SocketException e) {
-            e.printStackTrace();
-        }
+        enable();
     }
 
     public void enable() {
@@ -62,6 +57,21 @@ public class TrafficSniffer extends Thread {
         if (!settings.isEnable()) {
             disable();
             return;
+        }
+
+        try {
+            InetAddress ip = InetAddress.getByName(settings.getInterfaceName());
+            dev = Pcaps.getDevByAddress(ip);
+            
+            if(dev == null) {
+                disable();
+                return;
+            }
+
+            listenDevice(dev);
+
+        } catch (NotOpenException | PcapNativeException | UnknownHostException e) {
+            e.printStackTrace();
         }
 
         this.enable = true;
@@ -138,35 +148,5 @@ public class TrafficSniffer extends Thread {
         alert.setHeaderText("You are trying open web-site: " + blockedDomainName);
         alert.setContentText("Please close tab with blocked web site: " + blockedDomainName);
         alert.show();
-    }
-
-    public static InetAddress getIp() throws SocketException {
-
-        List<InetAddress> ifaces = Collections.list(NetworkInterface.getNetworkInterfaces()).stream()
-                .flatMap(i -> Collections.list(i.getInetAddresses()).stream())
-                .filter(ip -> ip instanceof Inet4Address)
-                .collect(Collectors.toList());
-
-
-        for (InetAddress address: ifaces) {
-
-            try (SocketChannel socket = SocketChannel.open()) {
-                // again, use a big enough timeout
-                socket.socket().setSoTimeout(3000);
-
-                // bind the socket to your local interface
-                socket.bind(new InetSocketAddress(address, 8080));
-                // try to connect to *somewhere*
-                socket.connect(new InetSocketAddress("google.com", 80));
-
-            } catch (IOException ex) {
-
-                if (ex.getMessage().contains("Address already in use: connect")) {
-                    return address;
-                }
-            }
-        }
-
-        return null;
     }
 }

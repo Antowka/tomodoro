@@ -8,17 +8,28 @@ import javafx.beans.value.ObservableValue;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.fxml.FXML;
-import javafx.scene.control.Button;
-import javafx.scene.control.CheckBox;
-import javafx.scene.control.TableColumn;
-import javafx.scene.control.TableView;
+import javafx.scene.control.*;
 import javafx.scene.control.cell.CheckBoxTableCell;
 import javafx.scene.control.cell.PropertyValueFactory;
 import javafx.scene.control.cell.TextFieldTableCell;
 import javafx.stage.Stage;
+import org.pcap4j.core.PcapNativeException;
+import org.pcap4j.core.PcapNetworkInterface;
+import org.pcap4j.core.Pcaps;
 import ru.antowka.tomodoro.infrastructure.settings.SettingManager;
 import ru.antowka.tomodoro.infrastructure.settings.setting.BlockedDomain;
 import ru.antowka.tomodoro.infrastructure.settings.setting.TrafficSnifferSetting;
+
+import java.net.Inet4Address;
+import java.net.InetAddress;
+import java.net.NetworkInterface;
+import java.net.SocketException;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+import java.util.stream.Collectors;
+
+import static org.pcap4j.core.Pcaps.findAllDevs;
 
 /**
  * Menu Controller
@@ -36,6 +47,9 @@ public class TrafficSnifferController {
 
     @FXML
     private Button cancel;
+
+    @FXML
+    private ChoiceBox<String> ethInterface;
 
     private Stage dialogStage;
 
@@ -59,11 +73,14 @@ public class TrafficSnifferController {
 
         blockedDomains = FXCollections.observableList(settings.getBlockedDomains());
 
+
+        //Enable\Disable flag
         enableControl.setSelected(settings.isEnable());
         enableControl.selectedProperty().addListener((ov, old_val, new_val) -> {
             settings.setEnable(new_val);
         });
 
+        //Blocked domain list
         TableColumn firstNameCol = (TableColumn)blockedList.getColumns().get(0);
         firstNameCol.setCellValueFactory(new PropertyValueFactory<BlockedDomain, String>("domain"));
         firstNameCol.setCellFactory(TextFieldTableCell.forTableColumn());
@@ -83,6 +100,29 @@ public class TrafficSnifferController {
         });
 
         blockedList.setItems(blockedDomains);
+
+        //Choice eth interface
+
+        List<String> interfaces  = new ArrayList<>();
+
+        try {
+
+            interfaces = Collections.list(NetworkInterface.getNetworkInterfaces()).stream()
+                    .flatMap(i -> Collections.list(i.getInetAddresses()).stream())
+                    .filter(ip -> ip instanceof Inet4Address)
+                    .map(InetAddress::getHostName)
+                    .collect(Collectors.toList());
+
+        } catch (SocketException e) {
+            e.printStackTrace();
+        }
+
+        ethInterface.setTooltip(new Tooltip("Select the use IP"));
+        ethInterface.setItems(FXCollections.observableArrayList(interfaces));
+        ethInterface.getSelectionModel().select(settings.getInterfaceName());
+        ethInterface.getSelectionModel().selectedItemProperty().addListener((observable, oldValue, newValue) ->
+                settings.setInterfaceName(newValue));
+
     }
 
     /**

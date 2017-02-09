@@ -13,7 +13,7 @@
 
     <MenuBar fx:id="menuBar" prefHeight="25.0" prefWidth="400.0">
         <Menu text="Options">
-            <MenuItem text="Traffic Control" fx:id="trafficSnifferSettings" />
+            <MenuItem text="Traffic Control" fx:id="mainSettings" />
         </Menu>
     </MenuBar>
     

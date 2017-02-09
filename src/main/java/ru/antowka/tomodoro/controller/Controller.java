@@ -13,12 +13,11 @@ import javafx.scene.text.Text;
 import javafx.stage.Modality;
 import javafx.stage.Stage;
 import ru.antowka.tomodoro.factory.GAFactory;
+import ru.antowka.tomodoro.factory.MainSettingManagerFactory;
 import ru.antowka.tomodoro.factory.ResourcesFactory;
-import ru.antowka.tomodoro.factory.TrafficSnifferFactory;
 import ru.antowka.tomodoro.infrastructure.GoogleAnalyticsTracking;
 import ru.antowka.tomodoro.infrastructure.Resources;
-import ru.antowka.tomodoro.infrastructure.TrafficSniffer;
-import ru.antowka.tomodoro.infrastructure.settings.impl.TrafficSnifferSettingManager;
+import ru.antowka.tomodoro.infrastructure.settings.impl.MainSettingManager;
 
 import javax.swing.*;
 import java.io.IOException;
@@ -44,7 +43,7 @@ public class Controller {
     private Button btnReset;
 
     @FXML
-    private MenuItem trafficSnifferSettings;
+    private MenuItem mainSettings;
 
     /**
      * Timer
@@ -52,9 +51,9 @@ public class Controller {
     private Timer timer;
 
     /**
-     * time period in sec (25min)
+     * time period in sec
      */
-    private final int timePeriod = 25 * 60;
+    private int timePeriod;
 
     /**
      * current timer counter
@@ -64,12 +63,7 @@ public class Controller {
     /**
      * length for time tick(1000 msec)
      */
-    private final int timeTick = 1*1000;
-
-    /**
-     * Traffic validator
-     */
-    private TrafficSniffer trafficSniffer;
+    private final int timeTick = 1 * 1000;
 
     /**
      * Resource for application
@@ -82,9 +76,9 @@ public class Controller {
     private GoogleAnalyticsTracking ga;
 
     /**
-     * Controller for menu
+     * Setting manager
      */
-    private TrafficSnifferController menuController;
+    private MainSettingManager mainSettingManager;
 
 
     public void initialize(Stage primaryStage) {
@@ -99,10 +93,14 @@ public class Controller {
                 .getInstance()
                 .getInstanceProduct();
 
-        //Traffic Control
-        trafficSniffer  = TrafficSnifferFactory
+        //setting manager
+        mainSettingManager = MainSettingManagerFactory
                 .getInstance()
                 .getInstanceProduct();
+
+        currentTimer = timePeriod = mainSettingManager
+                .loadSettings()
+                .getWorkTime() * 60;
 
 
         this.primaryStage = primaryStage;
@@ -118,7 +116,7 @@ public class Controller {
         btnReset.setOnAction((event) -> onClickReset());
 
         //Settings
-        trafficSnifferSettings.setOnAction((event -> showTrafficSnifferSettings()));
+        mainSettings.setOnAction((event -> showMainSettings()));
 
         initTimer();
 
@@ -128,46 +126,39 @@ public class Controller {
 
     private void onClickStart() {
 
-        if(currentTimer < 1) {
+        if (currentTimer < 1) {
             currentTimer = timePeriod;
         }
         timer.start();
-
-        startTrafficSniffer();
     }
 
     private void onClickPause() {
         timer.stop();
-        trafficSniffer.disable();
     }
 
     private void onClickReset() {
         timer.stop();
         currentTimer = timePeriod;
         stringTimer.setText(timeToString());
-        trafficSniffer.disable();
-
     }
 
     /**
      * Show dialog window for traffic sniffer setting
      */
-    private void showTrafficSnifferSettings() {
+    private void showMainSettings() {
 
         try {
             // Load the fxml file and create a new stage for the popup
-            FXMLLoader loader = new FXMLLoader(getClass().getResource("/view/trafficSnifferSettings.fxml"));
+            FXMLLoader loader = new FXMLLoader(getClass().getResource("/view/mainSettings.fxml"));
             AnchorPane page = (AnchorPane) loader.load();
+            MainSettingController mainSettingController = loader.getController();
             Stage dialogStage = new Stage();
-            dialogStage.setTitle("Edit Person");
+            dialogStage.setTitle("Main settings");
             dialogStage.initModality(Modality.WINDOW_MODAL);
             dialogStage.initOwner(primaryStage);
             Scene scene = new Scene(page);
             dialogStage.setScene(scene);
-
-            // Set properties into the controller
-            TrafficSnifferController controller = loader.getController();
-            controller.initialize(dialogStage, new TrafficSnifferSettingManager());
+            mainSettingController.initialize(dialogStage, mainSettingManager);
 
             // Show the dialog and wait until the user closes it
             dialogStage.showAndWait();
@@ -175,26 +166,6 @@ public class Controller {
         } catch (IOException e) {
             // Exception gets thrown if the fxml file could not be loaded
             e.printStackTrace();
-        }
-    }
-
-
-    /**
-     * Start traffic sniffer tread
-     */
-    private void startTrafficSniffer() {
-
-        if(trafficSniffer.getState() == Thread.State.NEW) {
-
-            trafficSniffer.enable();
-            trafficSniffer.start();
-
-        } else if(trafficSniffer.getState() == Thread.State.WAITING) {
-
-            synchronized (trafficSniffer) {
-                trafficSniffer.enable();
-                trafficSniffer.notifyAll();
-            }
         }
     }
 
@@ -207,10 +178,9 @@ public class Controller {
             currentTimer--;
             stringTimer.setText(timeToString());
 
-            if(currentTimer == 0) {
+            if (currentTimer == 0) {
                 Platform.runLater(() -> primaryStage.requestFocus());
                 timer.stop();
-                trafficSniffer.disable();
                 resources.playSoundDong();
             }
         });
@@ -226,7 +196,7 @@ public class Controller {
         return String.format("%d min, %d sec",
                 TimeUnit.MILLISECONDS.toMinutes(currentTimer * 1000),
                 TimeUnit.MILLISECONDS.toSeconds(currentTimer * 1000) -
-                TimeUnit.MINUTES.toSeconds(TimeUnit.MILLISECONDS.toMinutes(currentTimer * 1000))
+                        TimeUnit.MINUTES.toSeconds(TimeUnit.MILLISECONDS.toMinutes(currentTimer * 1000))
         );
     }
 }

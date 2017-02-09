@@ -7,4 +7,5 @@ public interface SettingManager<T> {
 
     T loadSettings();
     void saveSettings(T setting);
+    void refresh();
 }

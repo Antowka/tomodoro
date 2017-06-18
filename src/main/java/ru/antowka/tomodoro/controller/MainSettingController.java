@@ -40,7 +40,7 @@ public class MainSettingController {
 
         this.settingManager = settingManager;
         this.dialogStage = dialogStage;
-        dialogStage.setTitle("Traffic Control Settings");
+        dialogStage.setTitle("Settings");
 
         settingManager.refresh();
         settings = settingManager.loadSettings();
@@ -48,11 +48,11 @@ public class MainSettingController {
         workTime.setText(String.valueOf(settings.getWorkTime()));
         relaxTime.setText(String.valueOf(settings.getRelaxTime()));
 
-        workTime.selectedTextProperty().addListener(((observable, oldValue, newValue) -> {
+        workTime.textProperty().addListener(((observable, oldValue, newValue) -> {
             settings.setWorkTime(Integer.valueOf(newValue));
         }));
 
-        relaxTime.selectedTextProperty().addListener(((observable, oldValue, newValue) -> {
+        relaxTime.textProperty().addListener(((observable, oldValue, newValue) -> {
             settings.setRelaxTime(Integer.valueOf(newValue));
         }));
 

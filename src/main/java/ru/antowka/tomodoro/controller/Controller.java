@@ -104,7 +104,6 @@ public class Controller {
 
 
         this.primaryStage = primaryStage;
-        primaryStage.setResizable(false);
 
         logoImg.setImage(new Image("images/tomato.jpg"));
 
@@ -122,9 +121,19 @@ public class Controller {
 
         //send event to google analytics
         ga.trackAction("event", "application", "start");
+
+        primaryStage.setOnCloseRequest(e -> {
+            if (timer != null) {
+                timer.stop();
+            }
+        });
     }
 
     private void onClickStart() {
+
+        currentTimer = timePeriod = mainSettingManager
+                .loadSettings()
+                .getWorkTime() * 60;
 
         if (currentTimer < 1) {
             currentTimer = timePeriod;
@@ -150,7 +159,7 @@ public class Controller {
         try {
             // Load the fxml file and create a new stage for the popup
             FXMLLoader loader = new FXMLLoader(getClass().getResource("/view/mainSettings.fxml"));
-            AnchorPane page = (AnchorPane) loader.load();
+            AnchorPane page = loader.load();
             MainSettingController mainSettingController = loader.getController();
             Stage dialogStage = new Stage();
             dialogStage.setTitle("Main settings");

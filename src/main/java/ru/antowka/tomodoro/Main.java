@@ -19,6 +19,8 @@ public class Main extends Application {
 
         primaryStage.setTitle("Tomodoro");
         primaryStage.setScene(new Scene(root));
+        primaryStage.setResizable(false);
+        primaryStage.sizeToScene();
         primaryStage.show();
     }
 

@@ -1,5 +1,4 @@
-# Tomadoro
-## Tomadoro timer
+# Tomadoro timer
 
 ![TOMODORO TIMER](https://github.com/Antowka/tomodoro/blob/master/docs/Screenshot.png?raw=true)
 

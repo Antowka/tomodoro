@@ -188,9 +188,13 @@ public class Controller {
             stringTimer.setText(timeToString());
 
             if (currentTimer == 0) {
-                Platform.runLater(() -> primaryStage.requestFocus());
-                timer.stop();
+                Platform.runLater(() -> {
+                    primaryStage.requestFocus();
+                    primaryStage.setMaximized(true);
+                    primaryStage.sizeToScene();
+                });
                 resources.playSoundDong();
+                timer.stop();
             }
         });
     }
